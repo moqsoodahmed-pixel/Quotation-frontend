@@ -1,0 +1,388 @@
+:root {
+  /* LauncherDesk brand */
+  --navy: #0f3d6e;
+  --navy-deep: #0a2c52;
+  --blue: #2b7de0;
+  --orange: #e8792b;
+  --ink: #1a2333;
+  --slate: #5a6b82;
+  --line: #e2e8f0;
+  --paper: #eef2f7;
+  --card: #ffffff;
+  --soft: #eef4fb;
+  --danger: #e5484d;
+
+  --font-display: "Poppins", system-ui, sans-serif;
+  --font-body: "Inter", system-ui, sans-serif;
+  --radius: 12px;
+  --shadow: 0 1px 2px rgba(15, 61, 110, 0.06), 0 8px 24px rgba(15, 61, 110, 0.08);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  color: var(--ink);
+  background: var(--paper);
+}
+
+button { font-family: var(--font-body); cursor: pointer; }
+input, textarea, select { font-family: var(--font-body); }
+
+/* ---------------- top bar ---------------- */
+.app { min-height: 100vh; display: flex; flex-direction: column; }
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 20px;
+  background: var(--card);
+  border-bottom: 1px solid var(--line);
+  box-shadow: 0 1px 0 rgba(15, 61, 110, 0.04);
+}
+
+.brand { display: flex; align-items: center; gap: 14px; }
+.brand-logo { height: 34px; width: auto; display: block; }
+.brand-divider { width: 1px; height: 30px; background: var(--line); }
+.brand-text { display: flex; flex-direction: column; line-height: 1.1; }
+.brand-title { font-family: var(--font-display); font-weight: 600; color: var(--navy); font-size: 15px; }
+.brand-sub { font-size: 11px; color: var(--orange); font-weight: 500; letter-spacing: 0.02em; }
+
+.topbar-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+
+.status-pill {
+  font-size: 12px;
+  color: var(--navy);
+  background: var(--soft);
+  border: 1px solid #d7e6fb;
+  padding: 5px 10px;
+  border-radius: 999px;
+}
+
+/* buttons */
+.btn {
+  border: 1px solid transparent;
+  border-radius: 9px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  transition: transform 0.04s ease, background 0.15s ease, border-color 0.15s ease;
+}
+.btn:active { transform: translateY(1px); }
+.btn-primary { background: var(--blue); color: #fff; }
+.btn-primary:hover { background: #2470cf; }
+.btn-accent { background: var(--orange); color: #fff; }
+.btn-accent:hover { background: #d76d22; }
+.btn-outline { background: #fff; color: var(--navy); border-color: var(--line); }
+.btn-outline:hover { border-color: var(--blue); color: var(--blue); }
+.btn-ghost { background: transparent; color: var(--slate); }
+.btn-ghost:hover { color: var(--navy); background: var(--soft); }
+.btn-soft { background: var(--soft); color: var(--navy); border-color: #dbe8fa; }
+.btn-soft:hover { background: #e2eefc; }
+
+.btn-x {
+  border: 1px solid #f6d5d6;
+  background: #fdeeee;
+  color: var(--danger);
+  border-radius: 8px;
+  width: 30px;
+  height: 30px;
+  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+.btn-x:hover { background: #fbe0e0; }
+
+/* ---------------- workspace ---------------- */
+.workspace { flex: 1; padding: 20px; }
+
+.editor-grid {
+  display: grid;
+  grid-template-columns: minmax(360px, 460px) 1fr;
+  gap: 20px;
+  align-items: start;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.form-pane {
+  background: transparent;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: sticky;
+  top: 74px;
+  max-height: calc(100vh - 94px);
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
+.preview-pane {
+  display: flex;
+  justify-content: center;
+}
+.preview-scale { width: 100%; display: flex; justify-content: center; }
+
+/* ---------------- form ---------------- */
+.form { display: flex; flex-direction: column; gap: 16px; }
+
+.section {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 16px 16px 18px;
+  box-shadow: var(--shadow);
+}
+.section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.section-title {
+  font-family: var(--font-display);
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--navy);
+  margin: 0;
+}
+
+.field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 12px; }
+.field:last-child { margin-bottom: 0; }
+.field-label { font-size: 12px; font-weight: 600; color: var(--slate); }
+.field-hint { font-size: 11px; color: #93a1b5; }
+
+.row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+input, textarea, select {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  padding: 9px 11px;
+  font-size: 13px;
+  color: var(--ink);
+  background: #fbfcfe;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+input:focus, textarea:focus, select:focus {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(43, 125, 224, 0.14);
+  background: #fff;
+}
+textarea { resize: vertical; }
+
+.readonly-field { background: var(--soft); color: var(--slate); cursor: default; }
+.readonly-field:focus { box-shadow: none; border-color: var(--line); }
+
+.toggle { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink); cursor: pointer; }
+.toggle input { width: auto; }
+
+.insert-bar { display: flex; gap: 8px; margin-bottom: 12px; }
+.insert-select { flex: 1; }
+
+.svc-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+
+.svc-row { display: flex; align-items: flex-start; gap: 8px; }
+.svc-index {
+  flex: none;
+  width: 24px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--slate);
+}
+.svc-fields { flex: 1; display: grid; grid-template-columns: 1fr; gap: 6px; }
+.svc-fields .svc-desc { font-size: 12px; }
+.svc-fields .svc-price { max-width: 140px; }
+
+.tp-row { display: grid; grid-template-columns: 1fr 1fr auto; gap: 8px; }
+.term-row { display: grid; grid-template-columns: 150px 1fr auto; gap: 8px; }
+
+.note { font-size: 12px; color: var(--slate); line-height: 1.5; margin: 8px 0 0; }
+.note code { background: var(--soft); padding: 1px 5px; border-radius: 5px; font-size: 11px; }
+.error-note { font-size: 13px; color: var(--danger); background: #fdeeee; border: 1px solid #f6d5d6; padding: 10px 12px; border-radius: 9px; }
+
+.bank-card {
+  margin-top: 10px;
+  background: var(--soft);
+  border: 1px solid #dbe8fa;
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 13px;
+  line-height: 1.9;
+}
+
+/* ---------------- history ---------------- */
+.history { max-width: 760px; margin: 0 auto; }
+.history-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.history-list { display: flex; flex-direction: column; gap: 10px; }
+.history-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 12px 14px;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  transition: border-color 0.15s ease;
+}
+.history-card:hover { border-color: var(--blue); }
+.history-main { flex: 1; min-width: 0; }
+.history-title { font-weight: 600; color: var(--navy); font-size: 14px; }
+.history-no { color: var(--slate); font-weight: 500; margin-left: 6px; font-size: 12px; }
+.history-sub { font-size: 12px; color: var(--slate); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.history-date { font-size: 11px; color: #93a1b5; margin-top: 4px; }
+
+/* ============================================================
+   QUOTATION DOCUMENT (A4)  — this is what exports to PDF/Word.
+   Content that overflows one page's body budget flows onto another
+   fixed-size .doc-page (computed in QuotationPreview.jsx) instead of
+   stretching a single page taller than standard A4.
+   ============================================================ */
+/* No gap between pages: total height must stay an exact multiple of one
+   page's height, so the PDF export's pixel-based pagination (download.js)
+   lands on a clean page boundary every time. Each page's own box-shadow
+   (doesn't consume layout space) is what visually separates consecutive
+   sheets on screen instead. */
+.doc-pages { display: flex; flex-direction: column; align-items: center; gap: 0; }
+
+.doc-page {
+  width: 794px;               /* ~A4 @96dpi */
+  height: 1123px;
+  background: #fff;
+  color: var(--ink);
+  box-shadow: var(--shadow);
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+/* Marks every page after the first — used by html2pdf.js (download.js) to
+   force a new PDF page here regardless of the on-screen gap above. */
+.doc-page-break { break-before: page; }
+
+/* Off-screen, same-width copy of the content used only to measure real
+   flowed heights before deciding where pages split. Never seen, never
+   exported (download.js only reads the visible .doc-page elements). */
+.doc-measure {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  visibility: hidden;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+/* letterhead top/bottom — real brand artwork, not redrawn */
+.lh-header img, .lh-footer img { display: block; width: 100%; }
+
+/* body */
+.doc-body {
+  flex: 1;
+  min-height: 0;   /* stop flexbox's min-content auto-sizing from pushing the footer down if a page's body slightly overflows its measured budget */
+  overflow: hidden;
+  padding: 22px 40px 26px;
+  position: relative;
+  isolation: isolate;
+}
+
+.lh-watermark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 35%;
+  transform: translate(-50%, -50%);
+  z-index: -1;
+  pointer-events: none;
+}
+
+.meta-row { display: flex; justify-content: space-between; gap: 24px; margin-bottom: 14px; }
+.meta-left { flex: 1; }
+.meta-right { text-align: right; font-size: 12px; color: var(--ink); line-height: 1.8; }
+.to-block { line-height: 1.6; }
+
+.muted { color: var(--slate); }
+.strong { font-weight: 600; }
+
+.subject {
+  margin: 6px 0 16px;
+  padding: 10px 14px;
+  background: var(--soft);
+  border-left: 3px solid var(--orange);
+  border-radius: 0 8px 8px 0;
+}
+.subject-label { font-weight: 600; color: var(--navy); }
+
+.block { margin-bottom: 18px; }
+.block-title {
+  font-family: var(--font-display);
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--navy);
+  margin: 0 0 8px;
+  padding-bottom: 4px;
+  border-bottom: 2px solid var(--orange);
+  display: inline-block;
+}
+.para { margin: 0; color: #2b3546; }
+
+.tbl { width: 100%; border-collapse: collapse; font-size: 12px; }
+.tbl th {
+  background: var(--navy);
+  color: #fff;
+  text-align: left;
+  padding: 8px 10px;
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 0.02em;
+}
+.tbl td { border: 1px solid #dce4ee; padding: 8px 10px; vertical-align: top; }
+.tbl tfoot td { background: var(--soft); }
+.c-no { width: 34px; text-align: center; }
+.c-amt { text-align: right; white-space: nowrap; }
+.tbl-terms .c-term { width: 190px; background: #f6f9fd; }
+
+.savings {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: var(--orange);
+  font-weight: 500;
+}
+
+.addons { margin: 0; padding-left: 20px; }
+.addons li { margin-bottom: 3px; }
+
+.sign-row { margin-top: 26px; display: flex; justify-content: flex-end; }
+.sign-block { text-align: left; min-width: 220px; }
+.sign-seal { display: block; width: 84px; height: 84px; margin: 4px 0; }
+
+/* ---------------- responsive ---------------- */
+@media (max-width: 1080px) {
+  .editor-grid { grid-template-columns: 1fr; }
+  .form-pane { position: static; max-height: none; overflow: visible; }
+  .preview-pane { overflow-x: auto; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+}
