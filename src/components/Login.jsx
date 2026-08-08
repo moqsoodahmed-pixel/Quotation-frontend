@@ -25,7 +25,7 @@ export default function Login({ onLogin }) {
     <div style={styles.overlay}>
       <div style={styles.card}>
         <img src="/logo.png" alt="LauncherDesk" style={styles.logo} />
-        <h2 style={styles.title}>Quotation Manager</h2>
+        <h2 style={styles.title}>Quotation Maker</h2>
         <p style={styles.subtitle}>Sign in to continue</p>
 
         <form onSubmit={handleSubmit} style={styles.form}>
