@@ -1,5 +1,6 @@
 // Thin wrapper around the quotation-history REST API.
-const BASE = "/api/quotations";
+const BACKEND = import.meta.env.VITE_API_URL || "";
+const BASE = `${BACKEND}/api/quotations`;
 
 export async function listQuotations() {
   const res = await fetch(BASE);
