@@ -1,78 +1,960 @@
-// LauncherDesk service catalogue.
-// Each entry: { category, name, description, price }. Picking one from the
-// "Insert service" dropdown fills the service row's name, description
-// (the package's "Includes" list) and price in one go — all three stay
-// editable afterwards, this is just the starting point.
+// LauncherDesk service catalogue — sourced from the official Services
+// Catalogue & Quotation PDF. Each service has three cumulative packages:
+// Starter (₹30,000), Professional (₹40,000) and Premium (₹50,000) — every
+// tier includes everything from the tier below it, plus its own additions,
+// exactly as laid out in the PDF ("Everything in Starter/Professional, plus…").
+//
+// Picking a package from the "Insert service" dropdown fills the service
+// row's name, description (the package's "Includes" list) and price in one
+// go — all three stay editable afterwards, this is just the starting point.
 
 function includes(lines) {
   return "Includes:\n" + lines.map((l) => `• ${l}`).join("\n");
 }
 
-const PLC_STARTER_ITEMS = [
-  "Name Approval",
-  "2 Director Identification Numbers (DIN)",
-  "2 Digital Signature Certificates (DSC)",
-  "Certificate of Incorporation (COI)",
-  "Memorandum of Association (MOA)",
-  "Articles of Association (AOA)",
-  "PAN Card",
-  "TAN",
-  "EPF Registration",
-  "ESIC Registration",
-  "MSME (Udyam) Registration",
-  "GST Registration",
-  "Shops & Establishments Registration",
-];
-
-const PLC_PRO_ITEMS = [
-  ...PLC_STARTER_ITEMS,
-  "Social Media Account Creation (Facebook, Instagram, LinkedIn & X)",
-  "Basic Business Website (Up to 5 Pages)",
-  "Company Logo Design",
-  "Letterhead Design",
-  "Visiting Card Design",
-  "Google Business Profile (GMB) Setup",
-  "Business Email Configuration",
-  "Company Intro Video (30–60 Seconds)",
-  "WhatsApp Chat Integration",
-  "Contact Form Setup",
-  "Basic On-Page SEO",
-];
-
-const PLC_PREMIUM_ITEMS = [
-  ...PLC_PRO_ITEMS,
-  "Auditor Appointment (ADT-1 Filing)",
-  "Business Bank Account Opening Assistance",
-  "Payment Gateway Setup Assistance",
-  "Professional Tax Establishment (PTE) Registration",
-  "1 Year Compliance Support Package",
-  "Annual ROC Filing",
-  "DIR-3 KYC (if applicable)",
-  "DPT-3 Filing (if applicable)",
-  "Annual General Meeting (AGM) Compliance Guidance",
-  "MCA Compliance Reminders",
-  "Basic Compliance Consultation",
-];
+// Builds the three package entries for one service. `proAdd`/`premiumAdd`
+// are only the *additional* items for that tier — the PDF's "Everything in
+// <previous tier>, plus:" — so each tier's stored description ends up as the
+// complete, cumulative inclusions list for that package.
+function tiers(category, starterItems, proAdd, premiumAdd) {
+  const proItems = [...starterItems, ...proAdd];
+  const premiumItems = [...proItems, ...premiumAdd];
+  return [
+    { category, name: `${category} – Starter Package`, description: includes(starterItems), price: "30000" },
+    { category, name: `${category} – Professional Package`, description: includes(proItems), price: "40000" },
+    { category, name: `${category} – Premium Package`, description: includes(premiumItems), price: "50000" },
+  ];
+}
 
 export const SERVICE_CATALOGUE = [
-  {
-    category: "Private Limited Company",
-    name: "Private Limited Company – Starter Package",
-    description: includes(PLC_STARTER_ITEMS),
-    price: "30000",
-  },
-  {
-    category: "Private Limited Company",
-    name: "Private Limited Company – Pro Package",
-    description: includes(PLC_PRO_ITEMS),
-    price: "40000",
-  },
-  {
-    category: "Private Limited Company",
-    name: "Private Limited Company – Premium Package",
-    description: includes(PLC_PREMIUM_ITEMS),
-    price: "50000",
-  },
+  ...tiers(
+    "Private Limited Company Registration",
+    [
+      "Name Approval",
+      "2 Director Identification Numbers (DIN)",
+      "2 Digital Signature Certificates (DSC)",
+      "Certificate of Incorporation (COI)",
+      "Memorandum of Association (MOA)",
+      "Articles of Association (AOA)",
+      "PAN Card",
+      "TAN",
+      "MSME (Udyam) Registration",
+      "GST Registration",
+      "Shops & Establishments Registration",
+      "EPF Registration",
+      "ESIC Registration",
+    ],
+    [
+      "Social Media Account Creation — Facebook, Instagram, LinkedIn & X",
+      "Basic Business Website — Up to 5 Pages",
+      "Company Logo Design",
+      "Letterhead Design",
+      "Visiting Card Design",
+      "Google Business Profile Setup",
+      "Business Email Configuration",
+      "WhatsApp Chat Integration",
+      "Contact Form Setup",
+      "Basic On-Page SEO",
+    ],
+    [
+      "Company Intro Video — 30–60 Seconds",
+      "Auditor Appointment",
+      "ADT-1 Filing",
+      "Business Bank Account Opening Assistance",
+      "Payment Gateway Setup Assistance",
+      "Professional Tax Establishment Registration",
+      "1 Year Compliance Support",
+      "Annual ROC Filing",
+      "DIR-3 KYC Assistance",
+      "DPT-3 Filing, if applicable",
+      "AGM Compliance Guidance",
+      "MCA Compliance Reminders",
+      "Basic Compliance Consultation",
+    ]
+  ),
+
+  ...tiers(
+    "LLP Registration",
+    [
+      "LLP Name Reservation",
+      "2 Designated Partner DIN/DPIN Assistance",
+      "2 Digital Signature Certificates",
+      "LLP Agreement Drafting",
+      "FiLLiP Filing",
+      "Certificate of Incorporation",
+      "PAN",
+      "TAN",
+      "LLP Agreement Filing",
+      "MSME/Udyam Registration",
+      "GST Registration",
+      "Shops & Establishments Registration",
+    ],
+    [
+      "Business Logo Design",
+      "Letterhead Design",
+      "Visiting Card Design",
+      "Business Email Setup",
+      "Google Business Profile Setup",
+      "Social Media Account Creation",
+      "Basic Business Website — Up to 5 Pages",
+      "WhatsApp Integration",
+      "Contact Form",
+      "Basic On-Page SEO",
+      "Bank Account Opening Assistance",
+    ],
+    [
+      "LLP Annual Compliance Support — 1 Year",
+      "Form 11 Filing",
+      "Form 8 Filing",
+      "Income Tax Filing Assistance",
+      "Bookkeeping Guidance",
+      "Professional Tax Registration",
+      "GST Compliance Guidance",
+      "DSC Renewal Assistance",
+      "Compliance Calendar",
+      "Annual Compliance Reminders",
+      "Partner KYC Assistance",
+      "Basic Legal & Compliance Consultation",
+    ]
+  ),
+
+  ...tiers(
+    "One Person Company (OPC) Registration",
+    [
+      "Name Reservation",
+      "DSC",
+      "DIN",
+      "MOA Drafting",
+      "AOA Drafting",
+      "Nominee Consent Documentation",
+      "SPICe+ Filing",
+      "Certificate of Incorporation",
+      "PAN",
+      "TAN",
+      "MSME/Udyam Registration",
+      "GST Registration",
+    ],
+    [
+      "Shops & Establishments Registration",
+      "Business Logo Design",
+      "Letterhead Design",
+      "Visiting Card Design",
+      "Business Email Setup",
+      "Google Business Profile Setup",
+      "Social Media Account Creation",
+      "Basic Business Website — Up to 5 Pages",
+      "WhatsApp Integration",
+      "Contact Form",
+      "Basic SEO",
+      "Bank Account Opening Assistance",
+    ],
+    [
+      "1 Year OPC Compliance Support",
+      "Annual ROC Compliance",
+      "AOC-4 Filing",
+      "MGT-7A Filing",
+      "DIR-3 KYC Assistance",
+      "Income Tax Filing Assistance",
+      "Bookkeeping Guidance",
+      "Professional Tax Registration",
+      "GST Compliance Guidance",
+      "Compliance Calendar",
+      "MCA Compliance Reminders",
+      "Annual Compliance Consultation",
+    ]
+  ),
+
+  ...tiers(
+    "Section 8 Company / NGO Registration",
+    [
+      "Name Reservation",
+      "DSC for Directors",
+      "DIN Assistance",
+      "MOA Drafting",
+      "AOA Drafting",
+      "Section 8 Documentation",
+      "MCA Incorporation Filing",
+      "Certificate of Incorporation",
+      "PAN",
+      "TAN",
+      "Section 8 Licence Coordination",
+      "Basic NGO Compliance Guidance",
+    ],
+    [
+      "NGO Darpan Registration Assistance",
+      "12A Registration Assistance",
+      "80G Registration Assistance",
+      "NGO Bank Account Assistance",
+      "Logo Design",
+      "Letterhead Design",
+      "Basic Website",
+      "Business/NGO Email Setup",
+      "Google Business Profile",
+      "Social Media Setup",
+      "Donation/Contact Form",
+      "Basic SEO",
+    ],
+    [
+      "1 Year Compliance Support",
+      "Annual ROC Filing Assistance",
+      "Income Tax Return Filing Assistance",
+      "Accounting & Bookkeeping Guidance",
+      "FCRA Application Guidance",
+      "Donor Documentation Support",
+      "CSR Funding Readiness Guidance",
+      "Compliance Calendar",
+      "Annual Compliance Reminders",
+      "Governance Documentation Guidance",
+    ]
+  ),
+
+  ...tiers(
+    "Sole Proprietorship Registration",
+    [
+      "Business Name Assistance",
+      "Proprietorship Setup",
+      "MSME/Udyam Registration",
+      "GST Registration",
+      "Shops & Establishments Registration",
+      "PAN/TAN Guidance",
+      "Basic Documentation",
+      "Business Registration Certificate/Proof",
+      "Basic Compliance Guidance",
+    ],
+    [
+      "Logo Design",
+      "Letterhead",
+      "Visiting Card",
+      "Business Email",
+      "Google Business Profile",
+      "Social Media Setup",
+      "Basic Website — Up to 5 Pages",
+      "WhatsApp Integration",
+      "Contact Form",
+      "Basic SEO",
+      "Bank Account Opening Assistance",
+    ],
+    [
+      "1 Year Tax & Compliance Support",
+      "GST Return Filing Assistance",
+      "Income Tax Return Filing Assistance",
+      "Bookkeeping Support",
+      "Professional Tax Registration",
+      "Annual Compliance Calendar",
+      "Tax Reminder Support",
+      "Basic Business Consultation",
+      "Payment Gateway Assistance",
+    ]
+  ),
+
+  ...tiers(
+    "GST Registration & Compliance",
+    [
+      "GST Registration",
+      "GST Application Preparation",
+      "Document Verification",
+      "GST Application Filing",
+      "ARN Tracking",
+      "GST Certificate",
+      "Basic GST Consultation",
+      "GST Login Setup Assistance",
+    ],
+    [
+      "GST Return Filing Support",
+      "GSTR-1 Assistance",
+      "GSTR-3B Assistance",
+      "Input Tax Credit Guidance",
+      "GST Invoice Format",
+      "E-Invoice Guidance",
+      "E-Way Bill Guidance",
+      "GST Reconciliation",
+      "GST Compliance Calendar",
+      "Monthly Compliance Reminders",
+    ],
+    [
+      "1 Year GST Compliance Support",
+      "Monthly GST Review",
+      "GST Reconciliation",
+      "ITC Review",
+      "Notice Response Assistance",
+      "GST Amendment Assistance",
+      "GST Cancellation Assistance",
+      "GST Registration Modification",
+      "GST Advisory",
+      "Annual GST Compliance Review",
+    ]
+  ),
+
+  ...tiers(
+    "Startup India / DPIIT Registration",
+    [
+      "Startup Eligibility Assessment",
+      "DPIIT Application Preparation",
+      "Document Verification",
+      "Startup India Application",
+      "DPIIT Recognition Application",
+      "Application Tracking",
+      "Recognition Certificate Assistance",
+    ],
+    [
+      "Startup Profile Setup",
+      "Business Profile Documentation",
+      "Startup Pitch Profile",
+      "Founder Profile Preparation",
+      "Government Scheme Guidance",
+      "Startup Benefit Advisory",
+      "Trademark Guidance",
+      "MSME/Udyam Registration",
+      "Basic Funding Readiness Guidance",
+    ],
+    [
+      "Startup Compliance Consultation",
+      "Funding Readiness Consultation",
+      "Pitch Deck Guidance",
+      "Investor Documentation Checklist",
+      "Government Scheme Research",
+      "Startup Tax Benefit Guidance",
+      "Trademark Application Assistance",
+      "1 Year Startup Support",
+      "Quarterly Compliance Consultation",
+    ]
+  ),
+
+  ...tiers(
+    "MSME / Udyam Registration",
+    [
+      "Udyam Eligibility Check",
+      "Application Preparation",
+      "Document Verification",
+      "Udyam Registration",
+      "Udyam Certificate",
+      "Basic MSME Guidance",
+    ],
+    [
+      "MSME Profile Setup",
+      "GST Linking Guidance",
+      "Business Profile Documentation",
+      "Government Scheme Guidance",
+      "MSME Loan Documentation Guidance",
+      "Banking Assistance",
+      "Basic Business Consultation",
+    ],
+    [
+      "MSME Funding Readiness",
+      "Government Subsidy Guidance",
+      "MSME Scheme Identification",
+      "Documentation Support",
+      "Compliance Consultation",
+      "Business Growth Consultation",
+      "1 Year Advisory Support",
+    ]
+  ),
+
+  ...tiers(
+    "Import Export Code (IEC)",
+    [
+      "IEC Eligibility Assessment",
+      "Application Preparation",
+      "DGFT Application Filing",
+      "Document Verification",
+      "IEC Certificate",
+      "Basic Import/Export Guidance",
+    ],
+    [
+      "DGFT Profile Setup",
+      "Bank/AD Code Guidance",
+      "Import-Export Documentation Guidance",
+      "Basic Export Compliance Guidance",
+      "Invoice Documentation",
+      "Shipping Documentation Checklist",
+      "Business Email Setup",
+    ],
+    [
+      "1 Year IEC Compliance Support",
+      "IEC Modification Assistance",
+      "DGFT Update Assistance",
+      "Export Documentation Support",
+      "Export Incentive Guidance",
+      "International Business Consultation",
+      "Import/Export Compliance Review",
+    ]
+  ),
+
+  ...tiers(
+    "ISO Certification",
+    [
+      "ISO Requirement Assessment",
+      "ISO Standard Selection",
+      "Documentation Checklist",
+      "Basic Documentation Preparation",
+      "Certification Coordination",
+      "Audit Coordination",
+      "ISO Certificate Assistance",
+    ],
+    [
+      "Quality Policy",
+      "Process Documentation",
+      "SOP Preparation",
+      "Organization Documentation",
+      "Internal Audit Guidance",
+      "Corrective Action Guidance",
+      "Certification Body Coordination",
+    ],
+    [
+      "Complete ISO Documentation",
+      "Internal Audit Support",
+      "Management Review Guidance",
+      "Certification Audit Support",
+      "Corrective Action Support",
+      "Certification Renewal Reminder",
+      "1 Year ISO Compliance Guidance",
+      "Multi-standard Consultation",
+    ]
+  ),
+
+  ...tiers(
+    "Trademark Registration",
+    [
+      "Trademark Search",
+      "Trademark Class Identification",
+      "Application Preparation",
+      "Trademark Application Filing",
+      "Application Tracking",
+      "Basic Trademark Consultation",
+    ],
+    [
+      "Trademark Search Report",
+      "Brand Protection Consultation",
+      "Objection Monitoring",
+      "Examination Report Guidance",
+      "Trademark Status Monitoring",
+      "Basic Response Assistance",
+      "Trademark Documentation",
+    ],
+    [
+      "Complete Trademark Filing Support",
+      "Examination Objection Response Assistance",
+      "Hearing Preparation Guidance",
+      "Opposition Monitoring",
+      "Renewal Reminder",
+      "Trademark Portfolio Consultation",
+      "Brand Protection Strategy",
+      "1 Year Trademark Monitoring",
+    ]
+  ),
+
+  ...tiers(
+    "Accounting & Bookkeeping",
+    [
+      "Basic Bookkeeping",
+      "Sales & Purchase Recording",
+      "Expense Recording",
+      "Bank Reconciliation",
+      "Ledger Maintenance",
+      "Basic Monthly Reports",
+    ],
+    [
+      "Monthly Bookkeeping",
+      "GST Reconciliation",
+      "Accounts Payable Tracking",
+      "Accounts Receivable Tracking",
+      "Profit & Loss Statement",
+      "Balance Sheet",
+      "MIS Reporting",
+      "Monthly Financial Review",
+    ],
+    [
+      "Complete Annual Bookkeeping",
+      "Monthly MIS",
+      "Cash Flow Monitoring",
+      "Financial Reporting",
+      "GST Reconciliation",
+      "Tax Preparation Support",
+      "Audit Coordination",
+      "Management Reporting",
+      "1 Year Accounting Support",
+    ]
+  ),
+
+  ...tiers(
+    "Income Tax & Tax Compliance",
+    [
+      "Tax Assessment",
+      "ITR Preparation",
+      "Income Tax Return Filing",
+      "Basic Tax Calculation",
+      "Basic Tax Consultation",
+      "Filing Acknowledgement",
+    ],
+    [
+      "Tax Planning",
+      "Advance Tax Guidance",
+      "TDS Compliance Guidance",
+      "Tax Deduction Review",
+      "Financial Statement Review",
+      "Tax Documentation",
+      "Tax Notice Monitoring",
+    ],
+    [
+      "1 Year Tax Support",
+      "Tax Planning Consultation",
+      "TDS Return Assistance",
+      "Tax Notice Response Assistance",
+      "Tax Reconciliation",
+      "Audit Coordination",
+      "Annual Tax Review",
+      "Compliance Calendar",
+    ]
+  ),
+
+  ...tiers(
+    "ROC / MCA Annual Compliance",
+    [
+      "Annual Compliance Review",
+      "AOC-4 Filing",
+      "MGT-7/MGT-7A Filing",
+      "DIR-3 KYC Assistance",
+      "Basic MCA Compliance",
+    ],
+    [
+      "Auditor Appointment / ADT-1",
+      "DPT-3, if applicable",
+      "AGM Compliance Guidance",
+      "Board Meeting Documentation",
+      "Director Compliance",
+      "Statutory Registers Guidance",
+      "MCA Compliance Calendar",
+    ],
+    [
+      "1 Year ROC Compliance Support",
+      "Event-Based MCA Filings",
+      "Director KYC",
+      "Annual Return Compliance",
+      "Financial Statement Filing",
+      "AGM Compliance",
+      "MCA Notice Monitoring",
+      "Compliance Reminders",
+      "Basic Secretarial Consultation",
+    ]
+  ),
+
+  ...tiers(
+    "Payroll & HR Compliance",
+    [
+      "Employee Data Setup",
+      "Payroll Structure Setup",
+      "Salary Calculation",
+      "Payslip Generation",
+      "Basic Payroll Reporting",
+      "Employee Documentation Checklist",
+    ],
+    [
+      "Monthly Payroll Processing",
+      "PF/EPF Coordination",
+      "ESIC Coordination",
+      "TDS on Salary Guidance",
+      "Leave & Attendance Structure",
+      "Employee Onboarding Documentation",
+      "HR Policy Documentation",
+    ],
+    [
+      "1 Year Payroll Support",
+      "Monthly Payroll Management",
+      "PF/ESIC Compliance",
+      "Payroll Reconciliation",
+      "Employee Records Management",
+      "HR Compliance Calendar",
+      "HR Policy Support",
+      "Labour Compliance Guidance",
+    ]
+  ),
+
+  ...tiers(
+    "Website Development",
+    [
+      "Up to 5-Page Website",
+      "Responsive Design",
+      "Home Page",
+      "About Us",
+      "Services",
+      "Contact Page",
+      "Basic Contact Form",
+      "WhatsApp Integration",
+      "Basic SEO",
+      "SSL Setup",
+    ],
+    [
+      "Up to 8 Pages",
+      "Premium UI Design",
+      "Basic Blog",
+      "Google Analytics Setup",
+      "Google Search Console",
+      "Lead Capture Form",
+      "Social Media Integration",
+      "Basic Speed Optimization",
+      "Basic On-Page SEO",
+    ],
+    [
+      "Up to 12 Pages",
+      "Advanced UI/UX",
+      "Advanced Contact/Lead Forms",
+      "CMS Integration",
+      "Conversion Optimization",
+      "Advanced On-Page SEO",
+      "Analytics & Tracking",
+      "Speed Optimization",
+      "Security Configuration",
+      "1 Year Maintenance Support",
+    ]
+  ),
+
+  ...tiers(
+    "Software / Custom Application Development",
+    [
+      "Requirement Discussion",
+      "Basic UI/UX",
+      "Project Architecture",
+      "Basic Web Application",
+      "Core Module Development",
+      "Database Setup",
+      "Basic Testing",
+      "Deployment Assistance",
+    ],
+    [
+      "Multiple Modules",
+      "Admin Dashboard",
+      "User Login",
+      "Database Management",
+      "API Integration",
+      "Responsive Interface",
+      "Testing & Bug Fixing",
+      "Deployment",
+      "Basic Documentation",
+    ],
+    [
+      "Advanced Application Architecture",
+      "Multiple User Roles",
+      "Advanced Dashboard",
+      "Third-Party Integrations",
+      "Automation",
+      "Security Configuration",
+      "Performance Optimization",
+      "Deployment",
+      "3 Months Support",
+      "Maintenance Guidance",
+    ]
+  ),
+
+  ...tiers(
+    "Digital Marketing",
+    [
+      "Digital Marketing Audit",
+      "Social Media Setup",
+      "Social Media Strategy",
+      "Basic Content Calendar",
+      "Basic Creative Designs",
+      "Google Business Profile Optimization",
+      "Basic SEO",
+      "Monthly Performance Report",
+    ],
+    [
+      "Social Media Management",
+      "Content Creation",
+      "12–16 Monthly Posts",
+      "Basic Reels/Video Content",
+      "Hashtag Strategy",
+      "SEO Optimization",
+      "Google Business Profile Management",
+      "Lead Generation Strategy",
+      "Monthly Analytics",
+    ],
+    [
+      "Full Social Media Management",
+      "Content Strategy",
+      "SEO Strategy",
+      "Lead Generation",
+      "Google Ads Management",
+      "Meta Ads Management",
+      "Conversion Optimization",
+      "Monthly Reporting",
+      "Competitor Analysis",
+      "Marketing Consultation",
+    ]
+  ),
+
+  ...tiers(
+    "Branding & Creative Design",
+    [
+      "Logo Design",
+      "Color Palette",
+      "Typography Selection",
+      "Business Card",
+      "Letterhead",
+      "Basic Brand Guidelines",
+    ],
+    [
+      "Complete Brand Identity",
+      "Social Media Templates",
+      "Presentation Template",
+      "Email Signature",
+      "Brochure Design",
+      "Company Profile Design",
+      "Brand Guidelines",
+    ],
+    [
+      "Complete Brand Book",
+      "Marketing Collateral",
+      "Social Media Creative Kit",
+      "Advertisement Templates",
+      "Pitch Deck Design",
+      "Company Profile",
+      "Product/Service Brochure",
+      "Brand Strategy Consultation",
+    ]
+  ),
+
+  ...tiers(
+    "Fundraising & Investor Readiness",
+    [
+      "Funding Readiness Assessment",
+      "Business Model Review",
+      "Investor Documentation Checklist",
+      "Basic Pitch Deck Structure",
+      "Financial Information Checklist",
+      "Funding Strategy Consultation",
+    ],
+    [
+      "Investor Pitch Deck",
+      "Business Plan",
+      "Financial Projection",
+      "Investor Data Room Checklist",
+      "Founder Profile",
+      "Funding Strategy",
+      "Investor Targeting Guidance",
+    ],
+    [
+      "Complete Investor Readiness Package",
+      "Detailed Financial Model",
+      "Investor Pitch Deck",
+      "Business Plan",
+      "Valuation Preparation Guidance",
+      "Investor Outreach Strategy",
+      "Data Room Preparation",
+      "Due Diligence Checklist",
+      "Funding Consultation",
+    ]
+  ),
+
+  ...tiers(
+    "Business Bank Account Setup",
+    [
+      "Bank Account Eligibility Check",
+      "Document Checklist",
+      "Application Preparation",
+      "Bank Application Assistance",
+      "Account Opening Coordination",
+    ],
+    [
+      "Multiple Bank Options",
+      "Current Account Selection Guidance",
+      "KYC Documentation Support",
+      "Business Banking Setup",
+      "Internet Banking Assistance",
+      "Payment Collection Setup Guidance",
+    ],
+    [
+      "Payment Gateway Assistance",
+      "Payment Collection Setup",
+      "Business Banking Consultation",
+      "Banking Documentation",
+      "Merchant Account Guidance",
+      "1 Year Banking Support",
+    ]
+  ),
+
+  ...tiers(
+    "Payment Gateway Setup",
+    [
+      "Gateway Selection Guidance",
+      "KYC Documentation",
+      "Merchant Account Application",
+      "Basic Integration Assistance",
+      "Payment Link Setup",
+    ],
+    [
+      "Website Integration",
+      "Payment Button Setup",
+      "Payment Link Configuration",
+      "Webhook Configuration",
+      "Basic Testing",
+      "Transaction Flow Testing",
+    ],
+    [
+      "Advanced Payment Integration",
+      "Subscription/Recurring Payment Guidance",
+      "Refund Flow Setup",
+      "Payment Analytics",
+      "Multiple Payment Methods",
+      "Security Configuration",
+      "Post-Integration Support",
+    ]
+  ),
+
+  ...tiers(
+    "International / Overseas Company Setup",
+    [
+      "Country Selection Consultation",
+      "Business Structure Consultation",
+      "Incorporation Requirement Checklist",
+      "Company Name Guidance",
+      "Documentation Checklist",
+      "Incorporation Application Assistance",
+      "Basic Banking Guidance",
+      "Basic Tax/Compliance Orientation",
+      "Country: UAE / USA / UK / Singapore",
+    ],
+    [
+      "Company Incorporation Assistance",
+      "Registered Office Guidance",
+      "Business Bank Account Assistance",
+      "Tax Registration Guidance",
+      "Local Compliance Guidance",
+      "Business Documentation",
+      "International Business Consultation",
+      "Payment Solution Guidance",
+    ],
+    [
+      "Complete Overseas Setup Coordination",
+      "Company Incorporation",
+      "Tax Registration",
+      "Bank Account Assistance",
+      "Registered Office Assistance",
+      "Payment Gateway Guidance",
+      "Accounting Setup",
+      "Compliance Calendar",
+      "International Tax Consultation",
+      "1 Year Basic Compliance Coordination",
+    ]
+  ),
+
+  ...tiers(
+    "Professional Tax Registration",
+    [
+      "Eligibility Assessment",
+      "Document Verification",
+      "Application Preparation",
+      "Registration Filing",
+      "Certificate Assistance",
+    ],
+    [
+      "Employer Registration",
+      "Employee Registration Guidance",
+      "Payroll Tax Guidance",
+      "Return Filing Guidance",
+      "Compliance Calendar",
+      "Basic Tax Consultation",
+    ],
+    [
+      "1 Year Professional Tax Support",
+      "Return Filing Assistance",
+      "Registration Modification",
+      "Compliance Monitoring",
+      "Notice Assistance",
+      "Annual Compliance Review",
+    ]
+  ),
+
+  ...tiers(
+    "E-Stamping / Documentation Services",
+    [
+      "Document Requirement Review",
+      "Stamp Duty Guidance",
+      "E-Stamping Assistance",
+      "Document Preparation",
+      "Basic Verification",
+    ],
+    [
+      "Agreement Drafting Assistance",
+      "Business Agreements",
+      "Vendor Agreements",
+      "Employment Documentation",
+      "Service Agreements",
+      "Documentation Review",
+    ],
+    [
+      "Comprehensive Business Documentation",
+      "Agreement Review",
+      "Contract Documentation",
+      "Legal Documentation Coordination",
+      "Document Management",
+      "Ongoing Documentation Consultation",
+    ]
+  ),
+
+  ...tiers(
+    "Legal & Intellectual Property Support",
+    [
+      "Basic Legal Consultation",
+      "Business Agreement Review",
+      "NDA Documentation",
+      "Basic Contract Templates",
+      "Trademark Guidance",
+      "Legal Documentation Checklist",
+    ],
+    [
+      "Vendor Agreement",
+      "Client Agreement",
+      "Employment Agreement",
+      "NDA",
+      "Service Agreement",
+      "Trademark Application Assistance",
+      "Basic Legal Review",
+    ],
+    [
+      "Comprehensive Contract Support",
+      "Legal Document Review",
+      "IP Protection Consultation",
+      "Trademark Portfolio Guidance",
+      "Business Legal Consultation",
+      "Contract Risk Review",
+      "Ongoing Legal Coordination",
+    ]
+  ),
+
+  ...tiers(
+    "Compliance Management — Annual Package",
+    [
+      "Annual Compliance Calendar",
+      "MCA Compliance Reminders",
+      "GST Compliance Reminders",
+      "Income Tax Filing Reminder",
+      "DIR-3 KYC Reminder",
+      "Basic Compliance Consultation",
+      "Annual Compliance Review",
+    ],
+    [
+      "ROC Filing Assistance",
+      "GST Filing Assistance",
+      "Income Tax Filing Assistance",
+      "Accounting Coordination",
+      "Payroll Compliance Coordination",
+      "AGM Compliance Guidance",
+      "Statutory Compliance Tracking",
+    ],
+    [
+      "Full Annual Compliance Management",
+      "ROC Compliance",
+      "GST Compliance",
+      "Income Tax Compliance",
+      "Payroll Compliance",
+      "Accounting Coordination",
+      "MCA Filings",
+      "Compliance Calendar",
+      "Monthly Compliance Review",
+      "Priority Support",
+      "Annual Compliance Consultation",
+    ]
+  ),
 ];
 
 // Grouped map for building an <optgroup> dropdown.
@@ -81,5 +963,34 @@ export const SERVICES_BY_CATEGORY = SERVICE_CATALOGUE.reduce((acc, s) => {
   return acc;
 }, {});
 
-// Category order as it appears in the dropdown.
-export const CATEGORY_ORDER = ["Private Limited Company"];
+// Category order as it appears in the dropdown — matches the LauncherDesk
+// Services Catalogue PDF (services 1–27).
+export const CATEGORY_ORDER = [
+  "Private Limited Company Registration",
+  "LLP Registration",
+  "One Person Company (OPC) Registration",
+  "Section 8 Company / NGO Registration",
+  "Sole Proprietorship Registration",
+  "GST Registration & Compliance",
+  "Startup India / DPIIT Registration",
+  "MSME / Udyam Registration",
+  "Import Export Code (IEC)",
+  "ISO Certification",
+  "Trademark Registration",
+  "Accounting & Bookkeeping",
+  "Income Tax & Tax Compliance",
+  "ROC / MCA Annual Compliance",
+  "Payroll & HR Compliance",
+  "Website Development",
+  "Software / Custom Application Development",
+  "Digital Marketing",
+  "Branding & Creative Design",
+  "Fundraising & Investor Readiness",
+  "Business Bank Account Setup",
+  "Payment Gateway Setup",
+  "International / Overseas Company Setup",
+  "Professional Tax Registration",
+  "E-Stamping / Documentation Services",
+  "Legal & Intellectual Property Support",
+  "Compliance Management — Annual Package",
+];
