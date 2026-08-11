@@ -275,12 +275,13 @@ textarea { resize: vertical; }
    fixed-size .doc-page (computed in QuotationPreview.jsx) instead of
    stretching a single page taller than standard A4.
    ============================================================ */
-/* No gap between pages: total height must stay an exact multiple of one
-   page's height, so the PDF export's pixel-based pagination (download.js)
-   lands on a clean page boundary every time. Each page's own box-shadow
-   (doesn't consume layout space) is what visually separates consecutive
-   sheets on screen instead. */
-.doc-pages { display: flex; flex-direction: column; align-items: center; gap: 0; }
+/* A visible gap between pages on screen, so two consecutive letterheads
+   (whatever their colors) never visually run together at the seam. The PDF
+   export needs the opposite — total rendered height must be an exact
+   multiple of one page's height for its pixel-based pagination — so
+   download.js adds .pdf-export to zero this out just for the raster pass. */
+.doc-pages { display: flex; flex-direction: column; align-items: center; gap: 28px; }
+.doc-pages.pdf-export { gap: 0; }
 
 .doc-page {
   width: 794px;               /* ~A4 @96dpi */

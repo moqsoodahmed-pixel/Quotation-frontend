@@ -6,11 +6,11 @@ function fileBase(data) {
   return `LauncherDesk_Quotation_${no}`;
 }
 
-// PDF: rasterise the live preview node into an A4 PDF. Pages are already
-// fixed-size with zero gap between them (.doc-page, see app.css), so the
-// total rendered height is an exact multiple of one page — html2pdf's
-// pixel-based "legacy" pagination just needs to slice every pxPageHeight,
-// no page-break markers required.
+// PDF: rasterise the live preview node into an A4 PDF. Pages need zero gap
+// between them for this (see .pdf-export in app.css) so the total rendered
+// height is an exact multiple of one page — html2pdf's pixel-based "legacy"
+// pagination just needs to slice every pxPageHeight, no page-break markers
+// required. The gap is only suppressed for the raster step, then restored.
 export function downloadPdf(previewNode, data) {
   if (!previewNode) return;
   const opt = {
@@ -24,11 +24,18 @@ export function downloadPdf(previewNode, data) {
   const w = html2pdf().set(opt).from(previewNode);
   window.__debugPdfDataUri = () =>
     w.toContainer().then(() => w.toCanvas()).then(() => w.toPdf()).then(() => w.output("datauristring"));
+  previewNode.classList.add("pdf-export");
+  const restoreGap = () => previewNode.classList.remove("pdf-export");
   return w
     .toContainer()
     .then(() => w.toCanvas())
+    .then(() => restoreGap())
     .then(() => w.toPdf())
-    .then(() => w.save());
+    .then(() => w.save())
+    .catch((err) => {
+      restoreGap();
+      throw err;
+    });
 }
 
 // Fetch an (same-origin) image URL and inline it as a base64 data URI, so it
