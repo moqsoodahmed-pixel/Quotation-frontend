@@ -70,9 +70,9 @@ export default function App() {
     flash._t = window.setTimeout(() => setStatus(""), 2600);
   };
 
-  const assignNextQuotationNumber = useCallback(async () => {
+  const assignNextQuotationNumber = useCallback(async (forCompanyId) => {
     try {
-      const { quotationNo } = await getNextQuotationNumber();
+      const { quotationNo } = await getNextQuotationNumber(forCompanyId);
       update({ quotationNo });
     } catch {
       flash("Couldn't reach the server for a quotation number.");
@@ -83,8 +83,8 @@ export default function App() {
     if (!loggedIn) return;
     if (numberRequestedOnMount.current) return;
     numberRequestedOnMount.current = true;
-    assignNextQuotationNumber();
-  }, [loggedIn, assignNextQuotationNumber]);
+    assignNextQuotationNumber(companyId);
+  }, [loggedIn, companyId, assignNextQuotationNumber]);
 
   async function handleSave() {
     try {
@@ -121,12 +121,14 @@ export default function App() {
     setCurrentId(null);
     setShowHistory(false);
     flash("Started a new quotation");
-    assignNextQuotationNumber();
+    assignNextQuotationNumber(companyId);
   }
 
   function handleSelectCompany(id) {
+    if (id === companyId) return;
     setCompanyId(id);
     update({ companyLine: COMPANIES[id].companyLine });
+    assignNextQuotationNumber(id);
   }
 
   function handleLogout() {

@@ -47,8 +47,10 @@ export async function getQuotation(id) {
   return res.json();
 }
 
-export async function getNextQuotationNumber() {
-  const res = await fetch(`${BASE}/next-number`, { headers: authHeaders() });
+export async function getNextQuotationNumber(companyId) {
+  const res = await fetch(`${BASE}/next-number?company=${encodeURIComponent(companyId)}`, {
+    headers: authHeaders(),
+  });
   if (res.status === 401) { handle401(); return; }
   if (!res.ok) throw new Error("Could not get the next quotation number");
   return res.json();

@@ -1,18 +1,39 @@
-import { forwardRef, useLayoutEffect, useRef, useState } from "react";
+import { forwardRef, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { COMPANIES, DEFAULT_COMPANY_ID, BANK_DETAILS } from "../data/company.js";
 
 // A4 @96dpi, matching the .doc-page CSS below. Header/footer heights are
-// derived from the letterhead artwork's fixed aspect ratio (2482x438 and
-// 2482x548) at that page width, so a page's usable body height is whatever
-// is left after the letterhead bands and body padding.
+// derived from each company's own letterhead artwork aspect ratio (measured
+// at load time, since companies' header/footer art aren't all the same
+// shape) at that page width, so a page's usable body height is whatever is
+// left after the letterhead bands and body padding.
 const PAGE_W = 794;
 const PAGE_H = 1123;
-const HEADER_H = Math.round(PAGE_W / (2482 / 438));
-const FOOTER_H = Math.round(PAGE_W / (2482 / 548));
 const BODY_PAD_V = 22 + 26;
-const BODY_BUDGET = PAGE_H - HEADER_H - FOOTER_H - BODY_PAD_V - 12; // safety margin
 const BODY_CONTENT_W = PAGE_W - 40 * 2;
+const FALLBACK_HEADER_ASPECT = 2482 / 438;
+const FALLBACK_FOOTER_ASPECT = 2482 / 548;
+
+// Measures a letterhead image's real aspect ratio once it loads, so the
+// page-budget math below matches whatever art a company actually ships —
+// swapping in new artwork with a different shape needs no code change.
+function useImageAspect(src, fallback) {
+  const [aspect, setAspect] = useState(fallback);
+  useEffect(() => {
+    let cancelled = false;
+    const img = new Image();
+    img.onload = () => {
+      if (!cancelled && img.naturalWidth && img.naturalHeight) {
+        setAspect(img.naturalWidth / img.naturalHeight);
+      }
+    };
+    img.src = src;
+    return () => {
+      cancelled = true;
+    };
+  }, [src]);
+  return aspect;
+}
 
 function formatDate(iso) {
   if (!iso) return "";
@@ -161,6 +182,11 @@ function renderPageBody(units) {
 
 const QuotationPreview = forwardRef(function QuotationPreview({ data, companyId }, ref) {
   const company = COMPANIES[companyId] || COMPANIES[DEFAULT_COMPANY_ID];
+  const headerAspect = useImageAspect(company.header, FALLBACK_HEADER_ASPECT);
+  const footerAspect = useImageAspect(company.footer, FALLBACK_FOOTER_ASPECT);
+  const HEADER_H = Math.round(PAGE_W / headerAspect);
+  const FOOTER_H = Math.round(PAGE_W / footerAspect);
+  const BODY_BUDGET = PAGE_H - HEADER_H - FOOTER_H - BODY_PAD_V - 12; // safety margin
   const total = data.services.reduce((sum, s) => sum + parseAmount(s.price), 0);
   const addOnLines = (data.addOns || "").split("\n").map((l) => l.trim()).filter(Boolean);
   const terms = data.paymentTerms;
