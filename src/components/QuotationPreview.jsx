@@ -1,6 +1,6 @@
 import { forwardRef, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { COMPANY, BANK_DETAILS } from "../data/company.js";
+import { COMPANIES, DEFAULT_COMPANY_ID, BANK_DETAILS } from "../data/company.js";
 
 // A4 @96dpi, matching the .doc-page CSS below. Header/footer heights are
 // derived from the letterhead artwork's fixed aspect ratio (2482x438 and
@@ -159,7 +159,8 @@ function renderPageBody(units) {
   return out;
 }
 
-const QuotationPreview = forwardRef(function QuotationPreview({ data }, ref) {
+const QuotationPreview = forwardRef(function QuotationPreview({ data, companyId }, ref) {
+  const company = COMPANIES[companyId] || COMPANIES[DEFAULT_COMPANY_ID];
   const total = data.services.reduce((sum, s) => sum + parseAmount(s.price), 0);
   const addOnLines = (data.addOns || "").split("\n").map((l) => l.trim()).filter(Boolean);
   const terms = data.paymentTerms;
@@ -339,7 +340,7 @@ const QuotationPreview = forwardRef(function QuotationPreview({ data }, ref) {
     node: (
       <div className="sign-row" key="signature">
         <div className="sign-block">
-          <div className="muted">From {data.companyLine || COMPANY.name},</div>
+          <div className="muted">From {data.companyLine || company.name},</div>
           {data.showSignature && (
             <img className="sign-seal" src="/company-seal.png" alt="Company seal" width="84" height="84" />
           )}
@@ -405,14 +406,14 @@ const QuotationPreview = forwardRef(function QuotationPreview({ data }, ref) {
         {pageGroups.map((group, pageIndex) => (
           <div className={`doc-page${pageIndex > 0 ? " doc-page-break" : ""}`} key={pageIndex}>
             <div className="lh-header">
-              <img src="/letterhead-header.png" alt="LauncherDesk / DutyLaunch" width="100%" />
+              <img src={company.header} alt={company.name} width="100%" />
             </div>
             <div className="doc-body">
-              <img className="lh-watermark" src="/letterhead-watermark.png" alt="" />
+              <img className="lh-watermark" src={company.watermark} alt="" />
               {renderPageBody(group)}
             </div>
             <div className="lh-footer">
-              <img src="/letterhead-footer.png" alt={`${COMPANY.name} contact details`} width="100%" />
+              <img src={company.footer} alt={`${company.name} contact details`} width="100%" />
             </div>
           </div>
         ))}

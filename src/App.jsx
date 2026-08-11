@@ -3,7 +3,7 @@ import QuotationForm from "./components/QuotationForm.jsx";
 import QuotationPreview from "./components/QuotationPreview.jsx";
 import History from "./components/History.jsx";
 import Login from "./components/Login.jsx";
-import { COMPANY, DEFAULT_SIGNATORY } from "./data/company.js";
+import { COMPANIES, DEFAULT_COMPANY_ID, DEFAULT_SIGNATORY } from "./data/company.js";
 import { downloadPdf, downloadWord } from "./lib/download.js";
 import {
   saveQuotation,
@@ -16,7 +16,7 @@ import {
 let seq = 0;
 const uid = () => `r${Date.now().toString(36)}${(seq++).toString(36)}`;
 
-function blankQuotation() {
+function blankQuotation(company) {
   const today = new Date().toISOString().slice(0, 10);
   return {
     to: "",
@@ -39,7 +39,7 @@ function blankQuotation() {
       { id: uid(), label: "GST", value: "" },
       { id: uid(), label: "Proposal Validity", value: "" },
     ],
-    companyLine: COMPANY.companyLine,
+    companyLine: company.companyLine,
     showSignature: true,
     signatoryName: DEFAULT_SIGNATORY.name,
     designation: DEFAULT_SIGNATORY.designation,
@@ -49,7 +49,8 @@ function blankQuotation() {
 
 export default function App() {
   const [loggedIn, setLoggedIn] = useState(isLoggedIn());
-  const [data, setData] = useState(blankQuotation);
+  const [companyId, setCompanyId] = useState(DEFAULT_COMPANY_ID);
+  const [data, setData] = useState(() => blankQuotation(COMPANIES[DEFAULT_COMPANY_ID]));
   const [currentId, setCurrentId] = useState(null);
   const [showHistory, setShowHistory] = useState(false);
   const [status, setStatus] = useState("");
@@ -106,7 +107,7 @@ export default function App() {
   async function handleOpen(id) {
     try {
       const rec = await getQuotation(id);
-      setData({ ...blankQuotation(), ...rec.data });
+      setData({ ...blankQuotation(COMPANIES[companyId]), ...rec.data });
       setCurrentId(rec.id);
       setShowHistory(false);
       flash("Loaded from History");
@@ -116,11 +117,16 @@ export default function App() {
   }
 
   function handleNew() {
-    setData(blankQuotation());
+    setData(blankQuotation(COMPANIES[companyId]));
     setCurrentId(null);
     setShowHistory(false);
     flash("Started a new quotation");
     assignNextQuotationNumber();
+  }
+
+  function handleSelectCompany(id) {
+    setCompanyId(id);
+    update({ companyLine: COMPANIES[id].companyLine });
   }
 
   function handleLogout() {
@@ -142,8 +148,20 @@ export default function App() {
           <div className="brand-divider" />
           <div className="brand-text">
             <span className="brand-title">Quotation Maker</span>
-            <span className="brand-sub">{COMPANY.tagline}</span>
+            <span className="brand-sub">{COMPANIES[companyId].tagline}</span>
           </div>
+        </div>
+
+        <div className="company-switcher">
+          {Object.values(COMPANIES).map((c) => (
+            <button
+              key={c.id}
+              className={`company-tab${c.id === companyId ? " active" : ""}`}
+              onClick={() => handleSelectCompany(c.id)}
+            >
+              {c.name}
+            </button>
+          ))}
         </div>
 
         <div className="topbar-actions">
@@ -176,7 +194,7 @@ export default function App() {
             </section>
             <section className="preview-pane">
               <div className="preview-scale">
-                <QuotationPreview ref={previewRef} data={data} />
+                <QuotationPreview ref={previewRef} data={data} companyId={companyId} />
               </div>
             </section>
           </div>
