@@ -249,6 +249,18 @@ textarea { resize: vertical; }
 /* ---------------- history ---------------- */
 .history { max-width: 760px; margin: 0 auto; }
 .history-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.history-filters { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
+.history-filter-tabs { display: flex; gap: 4px; background: var(--soft); border: 1px solid var(--line); border-radius: 10px; padding: 3px; }
+.history-search {
+  flex: 1;
+  min-width: 160px;
+  max-width: 260px;
+  padding: 7px 11px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  font-size: 13px;
+  background: #fbfcfe;
+}
 .history-list { display: flex; flex-direction: column; gap: 10px; }
 .history-card {
   display: flex;
@@ -264,10 +276,23 @@ textarea { resize: vertical; }
 }
 .history-card:hover { border-color: var(--blue); }
 .history-main { flex: 1; min-width: 0; }
-.history-title { font-weight: 600; color: var(--navy); font-size: 14px; }
-.history-no { color: var(--slate); font-weight: 500; margin-left: 6px; font-size: 12px; }
+.history-title { font-weight: 600; color: var(--navy); font-size: 14px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.history-no { color: var(--slate); font-weight: 500; font-size: 12px; }
+.history-badge {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--navy);
+  background: var(--soft);
+  border: 1px solid #dbe8fa;
+  border-radius: 5px;
+  padding: 2px 7px;
+}
 .history-sub { font-size: 12px; color: var(--slate); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .history-date { font-size: 11px; color: #93a1b5; margin-top: 4px; }
+.history-actions { display: flex; gap: 6px; align-items: center; flex: none; }
+.btn-sm { padding: 5px 9px; font-size: 12px; }
 
 /* ============================================================
    QUOTATION DOCUMENT (A4)  — this is what exports to PDF/Word.

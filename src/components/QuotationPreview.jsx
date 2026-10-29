@@ -1,12 +1,8 @@
 import { forwardRef, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { COMPANIES, DEFAULT_COMPANY_ID, BANK_DETAILS } from "../data/company.js";
+import { COMPANIES, DEFAULT_COMPANY_ID } from "../data/company.js";
 
-// A4 @96dpi, matching the .doc-page CSS below. Header/footer heights are
-// derived from each company's own letterhead artwork aspect ratio (measured
-// at load time, since companies' header/footer art aren't all the same
-// shape) at that page width, so a page's usable body height is whatever is
-// left after the letterhead bands and body padding.
+// A4 @96dpi, matching the .doc-page CSS below.
 const PAGE_W = 794;
 const PAGE_H = 1123;
 const BODY_PAD_V = 22 + 26;
@@ -14,9 +10,6 @@ const BODY_CONTENT_W = PAGE_W - 40 * 2;
 const FALLBACK_HEADER_ASPECT = 2482 / 438;
 const FALLBACK_FOOTER_ASPECT = 2482 / 548;
 
-// Measures a letterhead image's real aspect ratio once it loads, so the
-// page-budget math below matches whatever art a company actually ships —
-// swapping in new artwork with a different shape needs no code change.
 function useImageAspect(src, fallback) {
   const [aspect, setAspect] = useState(fallback);
   useEffect(() => {
@@ -35,6 +28,11 @@ function useImageAspect(src, fallback) {
   return aspect;
 }
 
+// Hide broken images gracefully instead of showing browser broken-icon.
+function onImgError(e) {
+  e.currentTarget.style.display = "none";
+}
+
 function formatDate(iso) {
   if (!iso) return "";
   const d = new Date(iso);
@@ -51,9 +49,6 @@ function inr(n) {
   return "₹ " + n.toLocaleString("en-IN");
 }
 
-// Renders text with real <br/> line breaks (not CSS white-space, which
-// Word's HTML import doesn't honour reliably) — used for package "Includes"
-// lists in the services table.
 function MultiLine({ text }) {
   const lines = String(text || "").split("\n");
   return lines.map((line, i) => (
@@ -73,19 +68,22 @@ const SVC_THEAD_CONTENT = (
   </tr>
 );
 
-// Measures real content once per render (hidden, same width as a live page)
-// and greedily packs it into fixed-height A4 pages. "Block" units (About Us,
-// Payment Terms, signature, ...) are measured by diffing consecutive
-// offsetTops so CSS margins are captured correctly; service rows/total are
-// plain table rows (no margins involved) so a direct height read is enough.
-// A page that continues the services table mid-way pays for a repeated
-// <thead> out of its budget.
+// ---------------------------------------------------------------------------
+// usePaginatedBody — stores only unit KEYS in state, not the full unit
+// objects (which contain React nodes).  This avoids a stale-closure bug:
+// when a user types in the form, `units` is rebuilt with fresh nodes on every
+// render, but the layout-effect that computes page breaks runs *after* paint
+// and would capture the previous render's nodes if we stored them directly.
+// By storing keys and resolving against the *current* `units` array at render
+// time we always display the latest content.
+// ---------------------------------------------------------------------------
 function usePaginatedBody(units, budgetPx, theadHeightFallback) {
   const blockContainerRef = useRef(null);
   const blockRefs = useRef({});
   const svcTheadRef = useRef(null);
   const svcRowRefs = useRef({});
-  const [pageGroups, setPageGroups] = useState(() => [units]);
+  // pageKeyGroups: string[][] — each inner array is the keys on that page.
+  const [pageKeyGroups, setPageKeyGroups] = useState(() => [units.map((u) => u.key)]);
 
   useLayoutEffect(() => {
     const blockUnits = units.filter((u) => u.kind !== "svc-row" && u.kind !== "svc-total");
@@ -132,25 +130,28 @@ function usePaginatedBody(units, budgetPx, theadHeightFallback) {
         extra = isSvcRow ? theadHeight : 0;
       }
       if (isSvcRow) theadCountedOnThisPage = true;
-      current.push(u);
+      current.push(u.key);          // ← store KEY only, not the whole unit
       used += extra + h;
     });
     groups.push(current);
 
-    setPageGroups((prev) => {
+    setPageKeyGroups((prev) => {
       const sameShape =
         prev.length === groups.length &&
-        prev.every((g, gi) => g.length === groups[gi].length && g.every((u, ui) => u.key === groups[gi][ui].key));
+        prev.every((g, gi) => g.length === groups[gi].length && g.every((k, ki) => k === groups[gi][ki]));
       return sameShape ? prev : groups;
     });
   }, [units, budgetPx, theadHeightFallback]);
 
+  // Resolve keys → current units at render time so nodes are never stale.
+  const unitsByKey = Object.fromEntries(units.map((u) => [u.key, u]));
+  const pageGroups = pageKeyGroups.map((keys) =>
+    keys.map((k) => unitsByKey[k]).filter(Boolean)
+  );
+
   return { blockContainerRef, blockRefs, svcTheadRef, svcRowRefs, pageGroups };
 }
 
-// Groups a page's units so consecutive svc-row/svc-total units share one
-// <table> (with the column header repeated), while every other unit renders
-// as its own block.
 function renderPageBody(units) {
   const out = [];
   let svcBuffer = [];
@@ -182,11 +183,12 @@ function renderPageBody(units) {
 
 const QuotationPreview = forwardRef(function QuotationPreview({ data, companyId }, ref) {
   const company = COMPANIES[companyId] || COMPANIES[DEFAULT_COMPANY_ID];
+  const bankDetails = company.bankDetails || {};
   const headerAspect = useImageAspect(company.header, FALLBACK_HEADER_ASPECT);
   const footerAspect = useImageAspect(company.footer, FALLBACK_FOOTER_ASPECT);
   const HEADER_H = Math.round(PAGE_W / headerAspect);
   const FOOTER_H = Math.round(PAGE_W / footerAspect);
-  const BODY_BUDGET = PAGE_H - HEADER_H - FOOTER_H - BODY_PAD_V - 12; // safety margin
+  const BODY_BUDGET = PAGE_H - HEADER_H - FOOTER_H - BODY_PAD_V - 12;
   const total = data.services.reduce((sum, s) => sum + parseAmount(s.price), 0);
   const addOnLines = (data.addOns || "").split("\n").map((l) => l.trim()).filter(Boolean);
   const terms = data.paymentTerms;
@@ -339,7 +341,8 @@ const QuotationPreview = forwardRef(function QuotationPreview({ data, companyId 
     ),
   });
 
-  if (data.includeBank) {
+  const bankHasData = bankDetails.bankName && bankDetails.accountNumber;
+  if (data.includeBank && bankHasData) {
     units.push({
       key: "bank",
       kind: "block",
@@ -348,11 +351,11 @@ const QuotationPreview = forwardRef(function QuotationPreview({ data, companyId 
           <h3 className="block-title">Bank Details</h3>
           <table className="tbl tbl-terms">
             <tbody>
-              <tr><td className="strong c-term">Account Name</td><td>{BANK_DETAILS.accountName || "—"}</td></tr>
-              <tr><td className="strong c-term">Bank Name</td><td>{BANK_DETAILS.bankName || "—"}</td></tr>
-              <tr><td className="strong c-term">Branch</td><td>{BANK_DETAILS.branch || "—"}</td></tr>
-              <tr><td className="strong c-term">Account Number</td><td>{BANK_DETAILS.accountNumber || "—"}</td></tr>
-              <tr><td className="strong c-term">IFSC Code</td><td>{BANK_DETAILS.ifsc || "—"}</td></tr>
+              <tr><td className="strong c-term">Account Name</td><td>{bankDetails.accountName || "—"}</td></tr>
+              <tr><td className="strong c-term">Bank Name</td><td>{bankDetails.bankName || "—"}</td></tr>
+              <tr><td className="strong c-term">Branch</td><td>{bankDetails.branch || "—"}</td></tr>
+              <tr><td className="strong c-term">Account Number</td><td>{bankDetails.accountNumber || "—"}</td></tr>
+              <tr><td className="strong c-term">IFSC Code</td><td>{bankDetails.ifsc || "—"}</td></tr>
             </tbody>
           </table>
         </section>
@@ -368,7 +371,7 @@ const QuotationPreview = forwardRef(function QuotationPreview({ data, companyId 
         <div className="sign-block">
           <div className="muted">From {data.companyLine || company.name},</div>
           {data.showSignature && (
-            <img className="sign-seal" src="/company-seal.png" alt="Company seal" width="84" height="84" />
+            <img className="sign-seal" src={company.seal} alt="Company seal" width="84" height="84" onError={onImgError} />
           )}
           {data.signatoryName && <div className="strong">{data.signatoryName}</div>}
           {data.designation && <div className="muted">{data.designation}</div>}
@@ -387,10 +390,6 @@ const QuotationPreview = forwardRef(function QuotationPreview({ data, companyId 
     fallbackTheadHeight
   );
 
-  // Rendered via a portal straight to <body> — NOT inside the ref'd/exported
-  // tree below — so html2canvas (PDF export) and the Word-export clone never
-  // see this hidden, same-width copy that exists only to measure real
-  // flowed heights before deciding where pages split.
   const measurePortal = createPortal(
     <div className="doc-measure" aria-hidden="true">
       <div className="doc-body" ref={blockContainerRef} style={{ width: BODY_CONTENT_W }}>
@@ -432,14 +431,14 @@ const QuotationPreview = forwardRef(function QuotationPreview({ data, companyId 
         {pageGroups.map((group, pageIndex) => (
           <div className={`doc-page${pageIndex > 0 ? " doc-page-break" : ""}`} key={pageIndex}>
             <div className="lh-header">
-              <img src={company.header} alt={company.name} width="100%" />
+              <img src={company.header} alt={company.name} width="100%" onError={onImgError} />
             </div>
             <div className="doc-body">
-              <img className="lh-watermark" src={company.watermark} alt="" />
+              <img className="lh-watermark" src={company.watermark} alt="" onError={onImgError} />
               {renderPageBody(group)}
             </div>
             <div className="lh-footer">
-              <img src={company.footer} alt={`${company.name} contact details`} width="100%" />
+              <img src={company.footer} alt={`${company.name} contact details`} width="100%" onError={onImgError} />
             </div>
           </div>
         ))}

@@ -1,4 +1,12 @@
 const BACKEND = import.meta.env.VITE_API_URL || "";
+
+if (import.meta.env.DEV && !import.meta.env.VITE_API_URL) {
+  console.error(
+    "[api] VITE_API_URL is not set. Create a .env file with VITE_API_URL=http://localhost:4000 " +
+    "(see .env.example). API calls will go to the dev-server proxy if configured."
+  );
+}
+
 const BASE = `${BACKEND}/api/quotations`;
 
 function authHeaders() {
@@ -9,9 +17,19 @@ function authHeaders() {
   };
 }
 
+// Callbacks set by the app so a 401 can clear auth state without page reload.
+let _onSessionExpired = null;
+export function onSessionExpired(cb) {
+  _onSessionExpired = cb;
+}
+
 function handle401() {
   localStorage.removeItem("ld_token");
-  window.location.reload();
+  if (_onSessionExpired) {
+    _onSessionExpired();
+  } else {
+    window.location.reload();
+  }
 }
 
 export async function login(username, password) {
@@ -33,9 +51,15 @@ export function isLoggedIn() {
   return !!localStorage.getItem("ld_token");
 }
 
-export async function listQuotations() {
-  const res = await fetch(BASE, { headers: authHeaders() });
-  if (res.status === 401) { handle401(); return; }
+// List quotations — optional company filter and search query.
+export async function listQuotations({ company, q } = {}) {
+  const params = new URLSearchParams();
+  if (company) params.set("company", company);
+  if (q) params.set("q", q);
+  const qs = params.toString();
+  const url = qs ? `${BASE}?${qs}` : BASE;
+  const res = await fetch(url, { headers: authHeaders() });
+  if (res.status === 401) { handle401(); return []; }
   if (!res.ok) throw new Error("Could not load history");
   return res.json();
 }
@@ -47,6 +71,7 @@ export async function getQuotation(id) {
   return res.json();
 }
 
+// Preview next quotation number (does not consume it).
 export async function getNextQuotationNumber(companyId) {
   const res = await fetch(`${BASE}/next-number?company=${encodeURIComponent(companyId)}`, {
     headers: authHeaders(),
@@ -56,11 +81,12 @@ export async function getNextQuotationNumber(companyId) {
   return res.json();
 }
 
-export async function saveQuotation(data, id = null) {
+// Save (create or update).  The server assigns the real number on first save.
+export async function saveQuotation(data, companyId, id = null) {
   const res = await fetch(BASE, {
     method: "POST",
     headers: authHeaders(),
-    body: JSON.stringify({ id, data }),
+    body: JSON.stringify({ id, companyId, data }),
   });
   if (res.status === 401) { handle401(); return; }
   if (!res.ok) throw new Error("Could not save");
@@ -74,5 +100,17 @@ export async function deleteQuotation(id) {
   });
   if (res.status === 401) { handle401(); return; }
   if (!res.ok) throw new Error("Could not delete");
+  return res.json();
+}
+
+// Duplicate an existing quotation, optionally under a different company.
+export async function duplicateQuotation(id, targetCompanyId) {
+  const res = await fetch(`${BASE}/${id}/duplicate`, {
+    method: "POST",
+    headers: authHeaders(),
+    body: JSON.stringify({ companyId: targetCompanyId }),
+  });
+  if (res.status === 401) { handle401(); return; }
+  if (!res.ok) throw new Error("Could not duplicate");
   return res.json();
 }

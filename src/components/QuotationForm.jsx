@@ -1,5 +1,5 @@
-import { CATEGORY_ORDER, SERVICES_BY_CATEGORY, SERVICE_CATALOGUE } from "../data/services.js";
-import { BANK_DETAILS } from "../data/company.js";
+import { getCatalogue } from "../data/services/index.js";
+import { COMPANIES } from "../data/company.js";
 
 // --- small building blocks -------------------------------------------------
 function Field({ label, children, hint }) {
@@ -43,20 +43,30 @@ const PAYMENT_LABELS = [
   "Add-on services",
 ];
 
-export default function QuotationForm({ data, update, uid }) {
+function hasMissingCompanyDetails(company) {
+  const bd = company?.bankDetails || {};
+  const sig = company?.defaultSignatory || {};
+  return !bd.bankName || !bd.accountNumber || !bd.ifsc || !sig.name;
+}
+
+export default function QuotationForm({ data, update, uid, companyId, displayNo }) {
+  const company = COMPANIES[companyId];
+  const bankDetails = company?.bankDetails || {};
+  const showDetailsBanner = hasMissingCompanyDetails(company);
+  const { SERVICE_CATALOGUE, SERVICES_BY_CATEGORY, CATEGORY_ORDER, byId } = getCatalogue(companyId);
+  const catalogueEmpty = SERVICE_CATALOGUE.length === 0;
+
   // ---- services ----
   function addService(name = "") {
     update((p) => ({
       services: [...p.services, { id: uid(), name, description: "", price: "" }],
     }));
   }
-  function insertServiceFromCatalogue(name) {
-    if (!name) return;
-    // Pull the package's description/price along with its name — still
-    // editable afterwards, this just fills in the starting point.
-    const entry = SERVICE_CATALOGUE.find((s) => s.name === name);
-    const fields = { name, description: entry?.description || "", price: entry?.price || "" };
-    // fill the first empty row, else add a new one
+  function insertServiceFromCatalogue(entryId) {
+    if (!entryId) return;
+    const entry = byId[entryId];
+    if (!entry) return;
+    const fields = { name: entry.name, description: entry.description || "", price: entry.price || "" };
     update((p) => {
       const empty = p.services.findIndex((s) => !s.name);
       if (empty !== -1) {
@@ -102,8 +112,20 @@ export default function QuotationForm({ data, update, uid }) {
     update((p) => ({ paymentTerms: p.paymentTerms.filter((t) => t.id !== id) }));
   }
 
+  // Is the quotation number a preview hint or the real saved number?
+  const isPreviewNo = displayNo && displayNo.startsWith("Will be");
+
   return (
     <div className="form">
+      {showDetailsBanner && (
+        <div className="warning-banner" style={{
+          background: "#fff3cd", border: "1px solid #ffc107", borderRadius: 6,
+          padding: "10px 14px", marginBottom: 12, fontSize: 13, color: "#664d03",
+        }}>
+          <strong>{company?.name}</strong> has incomplete details (bank info or signatory).
+          Update <code>src/data/company.js</code> before sending quotations.
+        </div>
+      )}
       {/* CLIENT DETAILS */}
       <Section title="Client details">
         <Field label="To (name / designation)">
@@ -132,7 +154,15 @@ export default function QuotationForm({ data, update, uid }) {
             <input type="date" value={data.date} onChange={(e) => update({ date: e.target.value })} />
           </Field>
           <Field label="Quotation No.">
-            <input value={data.quotationNo} readOnly className="readonly-field" />
+            <input
+              value={data.quotationNo || ""}
+              readOnly
+              className="readonly-field"
+              title={data.quotationNo ? "" : displayNo}
+            />
+            {isPreviewNo && (
+              <span className="field-hint" style={{ color: "#2b7de0" }}>{displayNo}</span>
+            )}
           </Field>
         </div>
         <Field label="Subject">
@@ -160,7 +190,7 @@ export default function QuotationForm({ data, update, uid }) {
               rows={4}
               value={data.aboutText}
               onChange={(e) => update({ aboutText: e.target.value })}
-              placeholder="LauncherDesk is a … helping startups with registrations, IT and finance."
+              placeholder={`${company?.name || "Our company"} is a … helping startups with registrations, IT and finance.`}
             />
           </Field>
         )}
@@ -172,16 +202,24 @@ export default function QuotationForm({ data, update, uid }) {
           <select
             className="insert-select"
             value=""
-            onChange={(e) => insertServiceFromCatalogue(e.target.value)}
+            onChange={(e) => { insertServiceFromCatalogue(e.target.value); e.target.value = ""; }}
+            disabled={catalogueEmpty}
           >
-            <option value="">Insert service from catalogue…</option>
+            <option value="">
+              {catalogueEmpty
+                ? `No catalogue yet for ${company?.name || "this company"} – use Add blank row`
+                : "Insert service from catalogue…"}
+            </option>
             {CATEGORY_ORDER.map((cat) => (
               <optgroup key={cat} label={cat}>
-                {(SERVICES_BY_CATEGORY[cat] || []).map((name) => (
-                  <option key={name} value={name}>
-                    {name}
-                  </option>
-                ))}
+                {(SERVICES_BY_CATEGORY[cat] || []).map((id) => {
+                  const e = byId[id];
+                  return (
+                    <option key={id} value={id}>
+                      {e?.displayLabel || e?.name || id}
+                    </option>
+                  );
+                })}
               </optgroup>
             ))}
           </select>
@@ -370,15 +408,15 @@ export default function QuotationForm({ data, update, uid }) {
         {data.includeBank && (
           <>
             <p className="note">
-              These are fixed for every quotation and can't be edited here — ask an admin to
-              update them in <code>src/data/company.js</code> if they ever change.
+              Bank details for <strong>{company?.name}</strong> — update them in{" "}
+              <code>src/data/company.js</code> if they change.
             </p>
             <div className="bank-card">
-              <div><strong>Account name:</strong> {BANK_DETAILS.accountName || "—"}</div>
-              <div><strong>Bank name:</strong> {BANK_DETAILS.bankName || "—"}</div>
-              <div><strong>Branch:</strong> {BANK_DETAILS.branch || "—"}</div>
-              <div><strong>Account number:</strong> {BANK_DETAILS.accountNumber || "—"}</div>
-              <div><strong>IFSC code:</strong> {BANK_DETAILS.ifsc || "—"}</div>
+              <div><strong>Account name:</strong> {bankDetails.accountName || "—"}</div>
+              <div><strong>Bank name:</strong> {bankDetails.bankName || "—"}</div>
+              <div><strong>Branch:</strong> {bankDetails.branch || "—"}</div>
+              <div><strong>Account number:</strong> {bankDetails.accountNumber || "—"}</div>
+              <div><strong>IFSC code:</strong> {bankDetails.ifsc || "—"}</div>
             </div>
           </>
         )}

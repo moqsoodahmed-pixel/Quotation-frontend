@@ -1,21 +1,19 @@
 import html2pdf from "html2pdf.js";
+import { COMPANIES, DEFAULT_COMPANY_ID } from "../data/company.js";
 
-// Build a filename like LauncherDesk_Quotation_SKY-2026-001.pdf
-function fileBase(data) {
-  const no = (data.quotationNo || "quotation").replace(/[^\w-]+/g, "-");
-  return `LauncherDesk_Quotation_${no}`;
+// Build a filename like OfficeRestore_Quotation_OR-2026-001.pdf
+function fileBase(data, companyId) {
+  const company = COMPANIES[companyId] || COMPANIES[DEFAULT_COMPANY_ID];
+  const prefix = company.filePrefix || company.name.replace(/\s+/g, "");
+  const no = (data.quotationNo || "quotation").replace(/[/]+/g, "-").replace(/[^\w-]+/g, "");
+  return `${prefix}_Quotation_${no}`;
 }
 
-// PDF: rasterise the live preview node into an A4 PDF. Pages need zero gap
-// between them for this (see .pdf-export in app.css) so the total rendered
-// height is an exact multiple of one page — html2pdf's pixel-based "legacy"
-// pagination just needs to slice every pxPageHeight, no page-break markers
-// required. The gap is only suppressed for the raster step, then restored.
-export function downloadPdf(previewNode, data) {
+export function downloadPdf(previewNode, data, companyId) {
   if (!previewNode) return;
   const opt = {
     margin: 0,
-    filename: `${fileBase(data)}.pdf`,
+    filename: `${fileBase(data, companyId)}.pdf`,
     image: { type: "jpeg", quality: 0.98 },
     html2canvas: { scale: 2, useCORS: true, backgroundColor: "#ffffff" },
     jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
@@ -38,8 +36,6 @@ export function downloadPdf(previewNode, data) {
     });
 }
 
-// Fetch an (same-origin) image URL and inline it as a base64 data URI, so it
-// still renders once the HTML is saved out and reopened as a standalone file.
 async function toDataUrl(src) {
   const res = await fetch(src);
   const blob = await res.blob();
@@ -51,19 +47,10 @@ async function toDataUrl(src) {
   });
 }
 
-// Word: wrap the preview HTML so Word opens it as an editable .doc, forced
-// to a standard A4 page (Word otherwise falls back to the user's default
-// page size, e.g. US Letter), with the letterhead images embedded inline.
-export async function downloadWord(previewNode, data) {
+export async function downloadWord(previewNode, data, companyId) {
   if (!previewNode) return;
   const clone = previewNode.cloneNode(true);
-  // The hidden same-width copy used to measure page breaks (see
-  // QuotationPreview.jsx) isn't styled in this export's plain <style> block
-  // below, so it would otherwise dump duplicate, fully-visible content.
   clone.querySelector(".doc-measure")?.remove();
-  // Word's HTML import doesn't honour position:absolute reliably, so the
-  // centered watermark on each page (fine on-screen/PDF via CSS) is dropped
-  // here rather than risk it landing as a giant, badly-placed inline image.
   clone.querySelectorAll(".lh-watermark").forEach((el) => el.remove());
   const imgs = clone.querySelectorAll("img[src^='/']");
   await Promise.all(
@@ -89,11 +76,11 @@ export async function downloadWord(previewNode, data) {
 </style></head>
 <body><div class="Section1">${inner}</div></body></html>`;
 
-  const blob = new Blob(["\ufeff", html], { type: "application/msword" });
+  const blob = new Blob(["﻿", html], { type: "application/msword" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `${fileBase(data)}.doc`;
+  a.download = `${fileBase(data, companyId)}.doc`;
   document.body.appendChild(a);
   a.click();
   a.remove();

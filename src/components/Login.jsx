@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { login } from "../lib/api";
 
-export default function Login({ onLogin }) {
+export default function Login({ onLogin, message }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -27,6 +27,8 @@ export default function Login({ onLogin }) {
         <img src="/logo.png" alt="LauncherDesk" style={styles.logo} />
         <h2 style={styles.title}>Quotation Maker</h2>
         <p style={styles.subtitle}>Sign in to continue</p>
+
+        {message && <p style={styles.message}>{message}</p>}
 
         <form onSubmit={handleSubmit} style={styles.form}>
           <div style={styles.field}>
@@ -83,6 +85,18 @@ const styles = {
   logo: { width: 72, marginBottom: 16 },
   title: { margin: "0 0 4px", fontSize: 22, fontWeight: 700, color: "#1a1a2e" },
   subtitle: { margin: "0 0 28px", color: "#666", fontSize: 14 },
+  message: {
+    margin: "0 0 16px",
+    color: "#e8792b",
+    fontSize: 13,
+    fontWeight: 500,
+    textAlign: "center",
+    background: "#fff8f3",
+    border: "1px solid #fde0c8",
+    borderRadius: 8,
+    padding: "8px 12px",
+    width: "100%",
+  },
   form: { width: "100%", display: "flex", flexDirection: "column", gap: 16 },
   field: { display: "flex", flexDirection: "column", gap: 6 },
   label: { fontSize: 13, fontWeight: 600, color: "#333" },
